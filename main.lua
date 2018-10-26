@@ -9,8 +9,7 @@ images[5] = love.graphics.newImage("img/tile_ground_5.png")
 
 terraForming = 4
 isMousePressed = false
-mouseX = 0
-mouseY = 0
+
 offsetX = 0 -- Decallage entre mouseX et le centerX lors du clic
 offsetY = 0 -- Decallage entre mouseY et centerY lors du clic
 
@@ -29,14 +28,21 @@ function love.load()
   map.createMap()
 end
 -- ******************* DRAW ******************************
-function love.draw() 
+function love.draw()
   displayMap()
   --displayMapZindex()
+  printText("mx: "..mouseX.." my: "..mouseY, 10, 10)
+  printText("cx: "..centerX.." cy: "..centerY, 10, 25)
+  printText("ox: "..offsetX.." oy: "..offsetY, 10, 40)
 end
 -- **************** UPDATE *************************
 function love.update(dt)
-  local x, y = love.mouse.getPosition()
-  print(x.." : "..centerX.." ; "..offsetX)
+  mouseX = love.mouse.getX()
+  mouseY = love.mouse.getY()
+  local mousePosX = centerX + offsetX
+  local mousePosY = centerY + offsetY
+  tileMouse()
+  --local x, y = love.mouse.getPosition()
   if isMousePressed == true then
     camera()
   end
@@ -92,7 +98,22 @@ function displayMap()
     end 
   end
 end
-
+-- Gestion souris sur tiles
+function tileMouse()
+  local col, lig
+  for lig=1, table.getn(map), 1 do
+    for col=1, table.getn(map[lig]), 1 do
+      if (map[lig][col] ~= 0) then 
+        local x = (col-lig) * img_width /2
+        local y = (col+lig) * img_height / terraForming
+        if(mouseX > x + centerX and mouseX < x + centerX
+          and mouseY > 0 + centerY and mouseY < (col + lig ) * img_height/ terraForming + centerY) then
+          print(map[lig][col]) else print("0")
+       end
+      end
+    end 
+  end 
+end
 -- Gestion profondeur de champs
 function displayMapZindex()
   local col, lig

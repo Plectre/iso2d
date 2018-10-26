@@ -4,6 +4,8 @@ HEIGHT = 600
 centerX = (WIDTH / 2) -64
 centerY = (HEIGHT / 4) -64
 
+mouseX = centerX
+mouseY = centerY
 
 images={}
 images[1] = love.graphics.newImage("img/tile_ground_1.png")
