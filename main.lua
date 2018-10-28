@@ -6,12 +6,16 @@ images[2] = love.graphics.newImage("img/tile_ground_2.png")
 images[3] = love.graphics.newImage("img/tile_ground_3.png")
 images[4] = love.graphics.newImage("img/tile_ground_4.png")
 images[5] = love.graphics.newImage("img/tile_ground_5.png")
+images[9] = love.graphics.newImage("img/test.png")
 
 terraForming = 4
 isMousePressed = false
 
 offsetX = 0 -- Decallage entre mouseX et le centerX lors du clic
 offsetY = 0 -- Decallage entre mouseY et centerY lors du clic
+mouseOffsetX = 0
+mouseOffsetY = 0
+
 
 map = {}
 img_width = images[1]:getWidth()
@@ -30,10 +34,12 @@ end
 -- ******************* DRAW ******************************
 function love.draw()
   displayMap()
+  tileMouse()
   --displayMapZindex()
   printText("mx: "..mouseX.." my: "..mouseY, 10, 10)
   printText("cx: "..centerX.." cy: "..centerY, 10, 25)
   printText("ox: "..offsetX.." oy: "..offsetY, 10, 40)
+  printText("cox: "..mouseOffsetX.."coy: "..mouseOffsetY,10,55)
 end
 -- **************** UPDATE *************************
 function love.update(dt)
@@ -41,7 +47,8 @@ function love.update(dt)
   mouseY = love.mouse.getY()
   local mousePosX = centerX + offsetX
   local mousePosY = centerY + offsetY
-  tileMouse()
+  mouseOffsetX = mouseX - centerX
+  mouseOffsetY = mouseY - centerY
   --local x, y = love.mouse.getPosition()
   if isMousePressed == true then
     camera()
@@ -93,6 +100,8 @@ function displayMap()
           love.graphics.draw(images[2], x + centerX, y + centerY)
         elseif (map[lig][col] == 3) then
           love.graphics.draw(images[3], x + centerX, y + centerY)
+        elseif (map[lig][col] == 9) then
+          love.graphics.draw(images[9], x + centerX, y + centerY)
         end
       end
     end 
@@ -101,15 +110,26 @@ end
 -- Gestion souris sur tiles
 function tileMouse()
   local col, lig
+  local oldLig, oldCol
+  local oldTile
+  local posX = centerX + mouseOffsetX
+  local posY = centerY + mouseOffsetY
   for lig=1, table.getn(map), 1 do
     for col=1, table.getn(map[lig]), 1 do
       if (map[lig][col] ~= 0) then 
         local x = (col-lig) * img_width /2
         local y = (col+lig) * img_height / terraForming
-        if(mouseX > x + centerX and mouseX < x + centerX
-          and mouseY > 0 + centerY and mouseY < (col + lig ) * img_height/ terraForming + centerY) then
-          print(map[lig][col]) else print("0")
-       end
+        if(posX > x + centerX and posX < (x + centerX) + (img_width /2)
+          and posY > y + centerY and posY < (y + centerY) + (img_height/2)) then
+            oldLig = lig
+            oldCol = col
+            oldTile = map[oldLig][oldCol]
+            map[lig][col] = 9
+            print(oldLig, lig) 
+          end
+          if (oldLig ~= lig) then
+            --map[oldLig][oldCol] = oldTile
+          end
       end
     end 
   end 
