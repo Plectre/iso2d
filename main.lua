@@ -1,12 +1,12 @@
+require "init"
 
+local oldLig
+local oldCol
 
-images={}
-images[1] = love.graphics.newImage("img/tile_ground_1.png")
-images[2] = love.graphics.newImage("img/tile_ground_2.png")
-images[3] = love.graphics.newImage("img/tile_ground_3.png")
-images[4] = love.graphics.newImage("img/tile_ground_4.png")
-images[5] = love.graphics.newImage("img/tile_ground_5.png")
-images[9] = love.graphics.newImage("img/test.png")
+local sprites = require("Sprites")
+local camera = require("Camera")
+local mouse = require("input")
+images = sprites.images
 
 terraForming = 4
 isMousePressed = false
@@ -16,138 +16,105 @@ offsetY = 0 -- Decallage entre mouseY et centerY lors du clic
 mouseOffsetX = 0
 mouseOffsetY = 0
 
-
-map = {}
-img_width = images[1]:getWidth()
-img_height = images[1]:getHeight()
-
-require "map"
-require "init"
-
 -- ************** LOAD *******************************
-function love.load() 
-  love.window.setMode(WIDTH, HEIGHT,  {fullscreen=false, vsync=true, minwidth=800, minheight=600})
+function love.load()
+  love.window.setMode(WIDTH, HEIGHT, {fullscreen = false, vsync = true, minwidth = 800, minheight = 600})
   love.graphics.setBackgroundColor(0, 0, 0)
   love.window.setTitle("2D iso")
-  map.createMap()
+  sprites.load()
+  img_height = sprites.images[1]:getHeight()
+  img_width = sprites.images[1]:getWidth()
 end
 -- ******************* DRAW ******************************
 function love.draw()
-  displayMap()
-  tileMouse()
+  sprites.draw()
+  --displayMap()
+  --tileMouse()
   --displayMapZindex()
-  printText("mx: "..mouseX.." my: "..mouseY, 10, 10)
-  printText("cx: "..centerX.." cy: "..centerY, 10, 25)
-  printText("ox: "..offsetX.." oy: "..offsetY, 10, 40)
-  printText("cox: "..mouseOffsetX.."coy: "..mouseOffsetY,10,55)
+  --printText("mx: " .. mouseX .. " my: " .. mouseY, 10, 10)
+  --printText("cx: " .. centerX .. " cy: " .. centerY, 10, 25)
+  --printText("ox: " .. offsetX .. " oy: " .. offsetY, 10, 40)
+  --printText("cox: " .. mouseOffsetX .. "coy: " .. mouseOffsetY, 10, 55)
 end
 -- **************** UPDATE *************************
 function love.update(dt)
-  mouseX = love.mouse.getX()
-  mouseY = love.mouse.getY()
+  mouse.mousePos()
+  --sprites.mouseOver(mouse.mousePosX, mouse.mousePosY)
   local mousePosX = centerX + offsetX
   local mousePosY = centerY + offsetY
   mouseOffsetX = mouseX - centerX
   mouseOffsetY = mouseY - centerY
-  --local x, y = love.mouse.getPosition()
+  --tileMouse()
   if isMousePressed == true then
-    camera()
+    moveCamera()
   end
 end
 -- ******************* GESTION SOURIS *******************
 -- Le bouton est pressé on recupére la position x, y de souris et l'id du bouton droit
 function love.mousepressed(mousex, mousey, button)
-  if (button == 2) then
-    mouseX = mousex
-    mouseY = mousey
-    offsetX = mouseX - centerX
-    offsetY = mouseY - centerY
-    isMousePressed = true
-  end
+  mouse.mousePressed(button)
 end
 -- Le bouton est relaché
 function love.mousereleased()
-  isMousePressed = false
+  mouse.mousereleased()
 end
 -- Et la roue tourne .....
 function love.wheelmoved(x, y)
-  if y < 0 then 
-    terraForming = terraForming + 0.2
-  end
-  if y > 0 then 
-    terraForming = terraForming - 0.2
-  end
+  mouse.wheelmoved(x, y)
 end
-function camera()
-  centerX = love.mouse.getX() - offsetX
-  centerY = love.mouse.getY() - offsetY
+function moveCamera()
+  camera.moveCamera()
 end
 
 function printText(text, x, y)
   love.graphics.print(text, x, y)
 end
 
-function displayMap()
-  local col, lig
-  for lig=1, table.getn(map), 1 do
-    for col=1, table.getn(map[lig]), 1 do
-      if (map[lig][col] ~= 0) then 
-        local x = (col-lig) * img_width /2
-        local y = (col+lig) * img_height / terraForming
-        if (map[lig][col] == 1) then
-            love.graphics.draw(images[1], x + centerX, y + centerY)
-        elseif (map[lig][col] == 2) then
-          love.graphics.draw(images[2], x + centerX, y + centerY)
-        elseif (map[lig][col] == 3) then
-          love.graphics.draw(images[3], x + centerX, y + centerY)
-        elseif (map[lig][col] == 9) then
-          love.graphics.draw(images[9], x + centerX, y + centerY)
-        end
-      end
-    end 
-  end
-end
+
 -- Gestion souris sur tiles
 function tileMouse()
   local col, lig
-  local oldLig, oldCol
   local oldTile
   local posX = centerX + mouseOffsetX
   local posY = centerY + mouseOffsetY
-  for lig=1, table.getn(map), 1 do
-    for col=1, table.getn(map[lig]), 1 do
-      if (map[lig][col] ~= 0) then 
+  for lig=1, table.getn(sprites.map), 1 do
+    for col=1, table.getn(sprites.map[lig]), 1 do
+      if (sprites.map[lig][col] ~= 0) then 
         local x = (col-lig) * img_width /2
         local y = (col+lig) * img_height / terraForming
         if(posX > x + centerX and posX < (x + centerX) + (img_width /2)
           and posY > y + centerY and posY < (y + centerY) + (img_height/2)) then
-            oldLig = lig
-            oldCol = col
-            oldTile = map[oldLig][oldCol]
-            map[lig][col] = 9
-            print(oldLig, lig) 
-          end
-          if (oldLig ~= lig) then
-            --map[oldLig][oldCol] = oldTile
-          end
+            if (lig ~= oldLig or col ~= oldCol and oldTile ~= 9) then
+              print("~===============================================")
+              oldTile = map[lig][col]
+              print(oldTile)
+              oldLig = lig
+              oldCol = col
+              map[lig][col] = 9
+            else
+              map[oldLig][oldCol] = oldTile
+              print(oldTile)
+            end
+        end
       end
     end 
   end 
 end
--- Gestion profondeur de champs
+--[[Gestion profondeur de champs
 function displayMapZindex()
   local col, lig
-  for lig=1, table.getn(map), 1 do
-    for col=1, table.getn(map[lig]), 1 do
-      if (map[lig][col] ~= 0) then 
-        local x = (col-lig) * img_width /2
-        local y = (col+lig) * img_height / terraForming
+  for lig = 1, table.getn(map), 1 do
+    for col = 1, table.getn(map[lig]), 1 do
+      if (map[lig][col] ~= 0) then
+        local x = (col - lig) * img_width / 2
+        local y = (col + lig) * img_height / terraForming
         if (map[lig][col] == 4) then
-            love.graphics.draw(images[4], x + centerX, y + centerY)
+          love.graphics.draw(images[4], x + centerX, y + centerY)
         elseif (map[lig][col] == 5) then
           love.graphics.draw(images[5], x + centerX, y + centerY)
         end
       end
-    end 
+    end
   end
 end
+]]
