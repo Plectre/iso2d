@@ -28,22 +28,24 @@ end
 -- ******************* DRAW ******************************
 function love.draw()
   sprites.draw()
+  printText(sprites.text, 10, 40)
+  --sprites.mouseOver(mouse.mousePosX, mouse.mousePosY)
   --displayMap()
   --tileMouse()
   --displayMapZindex()
-  --printText("mx: " .. mouseX .. " my: " .. mouseY, 10, 10)
-  --printText("cx: " .. centerX .. " cy: " .. centerY, 10, 25)
+  printText("mx: " .. mouseX .. " my: " .. mouseY, 10, 10)
+  printText("cx: " .. centerX .. " cy: " .. centerY, 10, 25)
   --printText("ox: " .. offsetX .. " oy: " .. offsetY, 10, 40)
   --printText("cox: " .. mouseOffsetX .. "coy: " .. mouseOffsetY, 10, 55)
 end
 -- **************** UPDATE *************************
 function love.update(dt)
   mouse.mousePos()
-  --sprites.mouseOver(mouse.mousePosX, mouse.mousePosY)
-  local mousePosX = centerX + offsetX
-  local mousePosY = centerY + offsetY
-  mouseOffsetX = mouseX - centerX
-  mouseOffsetY = mouseY - centerY
+  mouseX = mouse.getMousePosX
+  mouseY = mouse.getMousePosY
+  -- Appel de la fonction mousePos() pour laquelle on ajoute mouseOffset
+  -- ce qui place l'origine au centre du sprite
+  sprites.mouseOver(centerX + mouseOffsetX, centerY + mouseOffsetY, img_height)
   --tileMouse()
   if isMousePressed == true then
     moveCamera()
@@ -70,51 +72,34 @@ function printText(text, x, y)
   love.graphics.print(text, x, y)
 end
 
-
 -- Gestion souris sur tiles
 function tileMouse()
   local col, lig
   local oldTile
   local posX = centerX + mouseOffsetX
   local posY = centerY + mouseOffsetY
-  for lig=1, table.getn(sprites.map), 1 do
-    for col=1, table.getn(sprites.map[lig]), 1 do
-      if (sprites.map[lig][col] ~= 0) then 
-        local x = (col-lig) * img_width /2
-        local y = (col+lig) * img_height / terraForming
-        if(posX > x + centerX and posX < (x + centerX) + (img_width /2)
-          and posY > y + centerY and posY < (y + centerY) + (img_height/2)) then
-            if (lig ~= oldLig or col ~= oldCol and oldTile ~= 9) then
-              print("~===============================================")
-              oldTile = map[lig][col]
-              print(oldTile)
-              oldLig = lig
-              oldCol = col
-              map[lig][col] = 9
-            else
-              map[oldLig][oldCol] = oldTile
-              print(oldTile)
-            end
-        end
-      end
-    end 
-  end 
-end
---[[Gestion profondeur de champs
-function displayMapZindex()
-  local col, lig
-  for lig = 1, table.getn(map), 1 do
-    for col = 1, table.getn(map[lig]), 1 do
-      if (map[lig][col] ~= 0) then
+  for lig = 1, table.getn(sprites.map), 1 do
+    for col = 1, table.getn(sprites.map[lig]), 1 do
+      if (sprites.map[lig][col] ~= 0) then
         local x = (col - lig) * img_width / 2
         local y = (col + lig) * img_height / terraForming
-        if (map[lig][col] == 4) then
-          love.graphics.draw(images[4], x + centerX, y + centerY)
-        elseif (map[lig][col] == 5) then
-          love.graphics.draw(images[5], x + centerX, y + centerY)
+        if
+          (posX > x + centerX and posX < (x + centerX) + (img_width / 2) and posY > y + centerY and
+            posY < (y + centerY) + (img_height / 2))
+         then
+          if (lig ~= oldLig or col ~= oldCol and oldTile ~= 9) then
+            print("~===============================================")
+            oldTile = map[lig][col]
+            print(oldTile)
+            oldLig = lig
+            oldCol = col
+            map[lig][col] = 9
+          else
+            map[oldLig][oldCol] = oldTile
+            print(oldTile)
+          end
         end
       end
     end
   end
 end
-]]
