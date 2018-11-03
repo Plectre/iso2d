@@ -71,35 +71,3 @@ end
 function printText(text, x, y)
   love.graphics.print(text, x, y)
 end
-
--- Gestion souris sur tiles
-function tileMouse()
-  local col, lig
-  local oldTile
-  local posX = centerX + mouseOffsetX
-  local posY = centerY + mouseOffsetY
-  for lig = 1, table.getn(sprites.map), 1 do
-    for col = 1, table.getn(sprites.map[lig]), 1 do
-      if (sprites.map[lig][col] ~= 0) then
-        local x = (col - lig) * img_width / 2
-        local y = (col + lig) * img_height / terraForming
-        if
-          (posX > x + centerX and posX < (x + centerX) + (img_width / 2) and posY > y + centerY and
-            posY < (y + centerY) + (img_height / 2))
-         then
-          if (lig ~= oldLig or col ~= oldCol and oldTile ~= 9) then
-            print("~===============================================")
-            oldTile = map[lig][col]
-            print(oldTile)
-            oldLig = lig
-            oldCol = col
-            map[lig][col] = 9
-          else
-            map[oldLig][oldCol] = oldTile
-            print(oldTile)
-          end
-        end
-      end
-    end
-  end
-end
